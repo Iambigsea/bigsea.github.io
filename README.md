@@ -28,6 +28,8 @@ RxJava解析1
 写成这样的话就可以把字符串“hello RxJava”转到onNext打印出来。OnSubscribe里面的"hello RxJava"怎么会跑到Subscriber的onnext方法的参数s里面的呢？
 这里先把类图上传上去
 
+![类图](https://github.com/Iambigsea/bigsea.github.io/subscribe.png)
+
 这里大概能看到一些类的关系，我们来看看具体源码
 首先是Observable.create()
 
