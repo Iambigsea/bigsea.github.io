@@ -308,7 +308,7 @@ observableExecutionHook里面，所以我们的hook对象就是通过RxJavaObser
                 subscriber.onCompleted();
             }
         };
-		onSubscribe.call(subscriber);
+	onSubscribe.call(subscriber);
 
 
 o了，就到这里
