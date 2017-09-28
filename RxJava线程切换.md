@@ -1,6 +1,6 @@
 Rxjava线程切换
 ==
-####基本使用
+#### 基本使用
 ```Java
 private void scheduleThread() {
         Observable.create(new Observable.OnSubscribe<String>() {
