@@ -1,7 +1,7 @@
 Rxjava线程切换
 ==
 ####基本使用
-...Java
+```Java
 private void scheduleThread() {
         Observable.create(new Observable.OnSubscribe<String>() {
             @Override
@@ -28,4 +28,4 @@ private void scheduleThread() {
                     }
                 });
     }
-...
+```
