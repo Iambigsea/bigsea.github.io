@@ -1,7 +1,7 @@
 RxJava解析1
 =========
 首先来看一下最基本的使用方式
-
+```Java
         Observable.create(new Observable.OnSubscribe<String>() {
             @Override
             public void call(Subscriber<? super String> subscriber) {
@@ -24,7 +24,7 @@ RxJava解析1
                 Log.i(TAG,s);
             }
         });
-
+```
 写成这样的话就可以把字符串“hello RxJava”转到onNext打印出来。OnSubscribe里面的"hello RxJava"怎么会跑到Subscriber的onnext方法的参数s里面的呢？
 这里先把类图上传上去
 
@@ -32,7 +32,7 @@ RxJava解析1
 
 这里大概能看到一些类的关系，我们来看看具体源码
 首先是Observable.create()
-
+```Java
         Observable.create(new Observable.OnSubscribe<String>() {
             @Override
             public void call(Subscriber<? super String> subscriber) {
@@ -40,9 +40,9 @@ RxJava解析1
                 subscriber.onCompleted();
             }
         })
-	
+```
 点击看看到的源码是这样的
-
+```Java
         public class Observable<T> {
 
             final OnSubscribe<T> onSubscribe;
@@ -56,10 +56,10 @@ RxJava解析1
             }
 	        .......
         }
-	
+```
 这里把多余的都删了。这里是通过调用Obserable的静态方法create来创建一个Obserable对象，这里把创建的OnSubscribe对象作为observable的构造函数参数传进去，并把值赋给成员变量onSubscribe。这里就创建Observable对象并给它的成员变量赋值onSubscribe赋值。
 再来看下subscribe()方法
-
+```Java
         subscribe(new Subscriber<String>() {
             @Override
             public void onCompleted() {
@@ -76,9 +76,9 @@ RxJava解析1
                 Log.i(TAG,s);
             }
         })
-	
+```	
 点进去看源码是这样的
-
+```Java
 	public class Observable<T> {
 
 		static final RxJavaObservableExecutionHook hook = RxJavaPlugins.getInstance().getObservableExecutionHook();
@@ -118,9 +118,9 @@ RxJava解析1
 		}
 		.......
 	}
-	
+```	
 subscribe(Subscriber<? super T> subscriber)去调用重载方法Subscription subscribe(Subscriber<? super T> subscriber, Observable<T> observable)，把传进来的subscriber和上一步创建的Observable对象做为参数穿进去，这个各种非法校验，合法之后了就调用subscribe的空模板方法onStart(),然后调用hook.onSubscribeStart(observable, observable.onSubscribe).call(subscriber);这个hook是什么鬼，它的onSubscribeStart()是干嘛的呢，不用慌，点进去see see
-
+```Java
         public abstract class RxJavaObservableExecutionHook {
 	        ......
                 public <T> OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, final OnSubscribe<T> onSubscribe) {
@@ -129,13 +129,13 @@ subscribe(Subscriber<? super T> subscriber)去调用重载方法Subscription sub
                 }
 	        ......
         }
-	
+```	
 好吧，什么都没干，就是直接吧你传进来的obSubscribe对象给返回给你，不过这个是个抽象类，看看我们使用的hook对象有没有去复写这个方法，这里hook是通过
-
+```Java
         static final RxJavaObservableExecutionHook hook = RxJavaPlugins.getInstance().getObservableExecutionHook();
-
+```
 来获取到的，点击去看看
-
+```Java
 	public class RxJavaPlugins {
 		private final static RxJavaPlugins INSTANCE = new RxJavaPlugins();
 		private final AtomicReference<RxJavaObservableExecutionHook> observableExecutionHook = new AtomicReference<RxJavaObservableExecutionHook>();
@@ -206,10 +206,10 @@ subscribe(Subscriber<? super T> subscriber)去调用重载方法Subscription sub
 		}
 		......
 	}
-
+```
 RxJavaPlugins.getInstance()就是获取RxJavaPlugins的单例对象，然后再调用getObservableExecutionHook()方法来获取到RxJavaObservableExecutionHook对象，observableExecutionHook是AtomicReference<RxJavaObservableExecutionHook>类型的，那这个AtomicReference是什么鬼呢，它其实就是一个保持数据在多线程之间同步的，就是说无论有几个线程去获取或设置它，获取到的都是唯一一个对象，不会又数据不同步的问题。if (observableExecutionHook.get() == null) {一开始肯定是为空的，因为没设置过，然后Object impl = getPluginImplementationViaProperty(RxJavaObservableExecutionHook.class, System.getProperties());我们也没有去配置RxJavaObservableExecutionHook，所以这个impl肯定是为空的，所以会去执行observableExecutionHook.compareAndSet(null, RxJavaObservableExecutionHookDefault.getInstance())方法compareAndSet(null, RxJavaObservableExecutionHookDefault.getInstance())的意思就是如果impl为null，就把RxJavaObservableExecutionHookDefault.getInstance()设置到
 observableExecutionHook里面，所以我们的hook对象就是通过RxJavaObservableExecutionHookDefault.getInstance()来获取到的，再点进去看看
-
+```Java
 	class RxJavaObservableExecutionHookDefault extends RxJavaObservableExecutionHook {
 
 		private static RxJavaObservableExecutionHookDefault INSTANCE = new RxJavaObservableExecutionHookDefault();
@@ -219,10 +219,9 @@ observableExecutionHook里面，所以我们的hook对象就是通过RxJavaObser
 		}
 
 	}
-
+```
 它就是继承RxJavaObservableExecutionHook抽象类，然后什么都没干，就提供了一个静态方法获取这个对象，其实就是一个RxJavaObservableExecutionHook的单利写法，所以我们的hook对象就是RxJavaObservableExecutionHook对象，所以我们之前调用的方法
-
-
+```Java
         public abstract class RxJavaObservableExecutionHook {
 	        ......
                 public <T> OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, final OnSubscribe<T> onSubscribe) {
@@ -231,13 +230,13 @@ observableExecutionHook里面，所以我们的hook对象就是通过RxJavaObser
                 }
 	        ......
         }
-	
+```	
 就是这个方法，这个方法就是什么都没干，就把你传进来的onSubscribe给返回了给你
-
+```Java
 	hook.onSubscribeStart(observable, observable.onSubscribe).call(subscriber);
-
+```
 所以这里就是调用了observable.onSubscribe的call方法，这个onSubscribe就是
-
+```Java
         Observable.create(new Observable.OnSubscribe<String>() {
             @Override
             public void call(Subscriber<? super String> subscriber) {
@@ -245,9 +244,9 @@ observableExecutionHook里面，所以我们的hook对象就是通过RxJavaObser
                 subscriber.onCompleted();
             }
         })
-
+```
 就是我们new的这个OnSubscribe，而hook.onSubscribeStart(observable, observable.onSubscribe).call(subscriber)的call里面的subscriber就是我们
-
+```Java
         subscribe(new Subscriber<String>() {
             @Override
             public void onCompleted() {
@@ -264,10 +263,9 @@ observableExecutionHook里面，所以我们的hook对象就是通过RxJavaObser
                 Log.i(TAG,s);
             }
         })
-	
+```	
 的这个玩意，所以
-
-
+```Java
         Observable.create(new Observable.OnSubscribe<String>() {
             @Override
             public void call(Subscriber<? super String> subscriber) {
@@ -275,16 +273,16 @@ observableExecutionHook里面，所以我们的hook对象就是通过RxJavaObser
                 subscriber.onCompleted();
             }
         })
-
+```
 我们的"hello RxJava"就通过subscriber.onNext("hello RxJava");跑到我们的
-
+```Java
             @Override
             public void onNext(String s) {
                 Log.i(TAG,s);
             }
-
+```
 里面了，简化一下就是这样
-
+```Java
         Subscriber<String> subscriber = new Subscriber<String>() {
             @Override
             public void onCompleted() {
@@ -309,6 +307,5 @@ observableExecutionHook里面，所以我们的hook对象就是通过RxJavaObser
             }
         };
 	onSubscribe.call(subscriber);
-
-
+```
 o了，就到这里
