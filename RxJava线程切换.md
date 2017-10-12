@@ -197,3 +197,115 @@ hook.getIOScheduler()返回的对象也是null的,所以就走到了下面这句
         return new Observable<T>(RxJavaHooks.onCreate(f));
     }
 ```
+这里就是返回一个new Observable对象,里面的f就是我们上面传过来的new OperatorSubscribeOn<T>(this, scheduler, requestOn),这里我们先不管这个是干嘛的,我们直接往后看,上节我们说过了基本的简单用法的流程
+ ```Java
+ Subscriber<String> subscriber = new Subscriber<String>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onNext(String s) {
+                Log.i(TAG, s);
+            }
+        };
+        Observable.OnSubscribe  onSubscribe= new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(Subscriber<? super String> subscriber) {
+                subscriber.onNext("hello RxJava");
+                subscriber.onCompleted();
+            }
+        };
+	onSubscribe.call(subscriber);
+ ```
+ 我们这里的Subscriber已经知道了,那么到底哪个是Observable.OnSubscribe呢?答案就在这里
+ ```Java
+     public final Observable<T> subscribeOn(Scheduler scheduler, boolean requestOn) {
+        if (this instanceof ScalarSynchronousObservable) {
+            return ((ScalarSynchronousObservable<T>)this).scalarScheduleOn(scheduler);
+        }
+        return unsafeCreate(new OperatorSubscribeOn<T>(this, scheduler, requestOn));
+    }
+ ```
+ 就是这个OperatorSubscribeOn对象,this就是我们一开始创建的,做具体事情的Observable.OnSubscribe对象,我们继续去看它的庐山真面目,因为我们已经知道是调用它的call方法来执行的,所以我们直接看它的call方法即可
+ ```Java
+ public final class OperatorSubscribeOn<T> implements OnSubscribe<T> {
+
+    final Scheduler scheduler;
+    final Observable<T> source;
+    final boolean requestOn;
+
+    public OperatorSubscribeOn(Observable<T> source, Scheduler scheduler, boolean requestOn) {
+        this.scheduler = scheduler;
+        this.source = source;
+        this.requestOn = requestOn;
+    }
+
+    @Override
+    public void call(final Subscriber<? super T> subscriber) {
+        final Worker inner = scheduler.createWorker();
+
+        SubscribeOnSubscriber<T> parent = new SubscribeOnSubscriber<T>(subscriber, requestOn, inner, source);
+        subscriber.add(parent);
+        subscriber.add(inner);
+
+        inner.schedule(parent);
+    }
+    ...
+    }
+ ```
+ 来仔细的look一下,这个scheduler就是我们之前找的CachedThreadScheduler对象,来看下它的createWorker()方法
+ ```Java
+     @Override
+    public Worker createWorker() {
+        return new EventLoopWorker(pool.get());
+    }
+ ```
+好的,它返回了一个EventLoopWorker,其他的先不看,先到OperatorSubscribeOn.cal方法里面继续看,这里new SubscribeOnSubscriber对象然后调用了subscriber的add方法,把新建的2个对象add了进去
+```Java
+    public final void add(Subscription s) {
+        subscriptions.add(s);
+    }
+   ...
+    @Override
+    public final void unsubscribe() {
+        subscriptions.unsubscribe();
+    }
+    ...
+    @Override
+    public void unsubscribe() {
+        if (!unsubscribed) {
+            List<Subscription> list;
+            synchronized (this) {
+                if (unsubscribed) {
+                    return;
+                }
+                unsubscribed = true;
+                list = subscriptions;
+                subscriptions = null;
+            }
+            // we will only get here once
+            unsubscribeFromAll(list);
+        }
+    }
+```
+这个也没什么,我把主要的三个方法列出来了,其实就是把它放到一个专门存放这些Subscription的集合里面,方便在取消订阅的时候统一取消,继续看会之前的
+ ```Java
+ inner.schedule(parent);
+ ```
+ 它调用了CachedThreadScheduler的schedule方法
+ ```Java
+         @Override
+        public Subscription schedule(Action0 action) {
+            return schedule(action, 0, null);
+        }
+ ```
+ 
+
+ 
