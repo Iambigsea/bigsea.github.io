@@ -299,13 +299,186 @@ hook.getIOScheduler()返回的对象也是null的,所以就走到了下面这句
  ```Java
  inner.schedule(parent);
  ```
- 它调用了CachedThreadScheduler的schedule方法
- ```Java
-         @Override
-        public Subscription schedule(Action0 action) {
-            return schedule(action, 0, null);
+ 它调用了Worker inner的schedule方法,这个inner就是我们前面说的new的EventLoopWorker对象,所以调用的是EventLoopWorker的schedule方法
+ ```Java		
+    @Override
+    public Subscription schedule(Action0 action) {
+        return schedule(action, 0, null);
+    }
+
+    @Override
+    public Subscription schedule(final Action0 action, long delayTime, TimeUnit unit) {
+        if (innerSubscription.isUnsubscribed()) {
+            // don't schedule, we are unsubscribed
+            return Subscriptions.unsubscribed();
         }
+
+        ScheduledAction s = threadWorker.scheduleActual(new Action0() {
+            @Override
+            public void call() {
+                if (isUnsubscribed()) {
+                    return;
+                }
+                action.call();
+            }
+        }, delayTime, unit);
+        innerSubscription.add(s);
+        s.addParent(innerSubscription);
+        return s;
+    }	
  ```
- 
+去除其他合法校验的东西,其实就核心代码就是这个
+```Java
+    ScheduledAction s = threadWorker.scheduleActual(new Action0() {
+        @Override
+        public void call() {
+            if (isUnsubscribed()) {
+               return;
+            }
+            action.call();
+         }
+    }, delayTime, unit);
+```
+其实就是调用threadWorker.scheduleActual()方法,这个threadWorker又是什么呢
+```Java
+    static final class EventLoopWorker extends Worker implements Action0 {
+        private final CompositeSubscription innerSubscription = new CompositeSubscription();
+        private final CachedWorkerPool pool;
+        private final ThreadWorker threadWorker;
+        final AtomicBoolean once;
+
+        EventLoopWorker(CachedWorkerPool pool) {
+            this.pool = pool;
+            this.once = new AtomicBoolean();
+            this.threadWorker = pool.get();
+        }
+	
+	@Override
+	public Worker createWorker() {
+	    return new EventLoopWorker(pool.get());
+	}
+```
+threadWorker是通过CachedWorkerPool.get()获取到的,这个pool就是我们CachedThreadScheduler的一个成员变量,我们来找找它
+```Java
+    public CachedThreadScheduler(ThreadFactory threadFactory) {
+        this.threadFactory = threadFactory;
+        this.pool = new AtomicReference<CachedWorkerPool>(NONE);
+        start();
+    }
+```
+这个pool是在我们创建CachedThreadScheduler对象时,在它的成员变量里面赋值的,是一个保证在多线程运行中保证数据同步的类AtomicReference的
+类包裹的CachedWorkerPool类,一开始的值为NONE,这个null是在静态代码块里面赋值的
+```Java
+    static {
+	......
+        NONE = new CachedWorkerPool(null, 0, null);
+        NONE.shutdown();
+        ......
+    }	
+```
+是一个CachedWorkerPool对象,先不看这个对象是干嘛的,因为这个变量的命名为NONE,所以应该是空值的默认值,回到前面CachedThreadScheduler的构造函数,里面在创建了pool之后还调用了start()方法,去看看它做了什么
+```Java
+    @Override
+    public void start() {
+        CachedWorkerPool update =
+            new CachedWorkerPool(threadFactory, KEEP_ALIVE_TIME, KEEP_ALIVE_UNIT);
+        if (!pool.compareAndSet(NONE, update)) {
+            update.shutdown();
+        }
+    }	
+```
+没错,这里的start()就是对pool对象赋值了,通过cas方法来进行赋值,如果赋值不成功则废弃掉这个update对象
+```Java
+    void shutdown() {
+        try {
+            if (evictorTask != null) {
+                evictorTask.cancel(true);
+            }
+            if (evictorService != null) {
+                evictorService.shutdownNow();
+            }
+        } finally {
+            allWorkers.unsubscribe();
+        }
+    }	
+```
+取消evictorTask,停止evictorService,取消订阅allWorkers里面的所有订阅者.好的,回到主路线,我们新建的update对象即是我们的pool对象,里面的threadWork就是通过这个pool.get()来获取的,我们来看这个这个pool到底是何方神圣
+```Java
+static final class CachedWorkerPool {
+        private final ThreadFactory threadFactory;
+        private final long keepAliveTime;
+        private final ConcurrentLinkedQueue<ThreadWorker> expiringWorkerQueue;
+        private final CompositeSubscription allWorkers;
+        private final ScheduledExecutorService evictorService;
+        private final Future<?> evictorTask;
+
+        CachedWorkerPool(final ThreadFactory threadFactory, long keepAliveTime, TimeUnit unit) {
+            this.threadFactory = threadFactory;
+            this.keepAliveTime = unit != null ? unit.toNanos(keepAliveTime) : 0L;
+            this.expiringWorkerQueue = new ConcurrentLinkedQueue<ThreadWorker>();
+            this.allWorkers = new CompositeSubscription();
+
+            ScheduledExecutorService evictor = null;
+            Future<?> task = null;
+            if (unit != null) {
+                evictor = Executors.newScheduledThreadPool(1, new ThreadFactory() {
+                    @Override public Thread newThread(Runnable r) {
+                        Thread thread = threadFactory.newThread(r);
+                        thread.setName(thread.getName() + " (Evictor)");
+                        return thread;
+                    }
+                });
+                NewThreadWorker.tryEnableCancelPolicy(evictor);
+                task = evictor.scheduleWithFixedDelay(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                evictExpiredWorkers();
+                            }
+                        }, this.keepAliveTime, this.keepAliveTime, TimeUnit.NANOSECONDS
+                );
+            }
+            evictorService = evictor;
+            evictorTask = task;
+        }
+
+        ThreadWorker get() {
+            if (allWorkers.isUnsubscribed()) {
+                return SHUTDOWN_THREADWORKER;
+            }
+            while (!expiringWorkerQueue.isEmpty()) {
+                ThreadWorker threadWorker = expiringWorkerQueue.poll();
+                if (threadWorker != null) {
+                    return threadWorker;
+                }
+            }
+
+            // No cached worker found, so create a new one.
+            ThreadWorker w = new ThreadWorker(threadFactory);
+            allWorkers.add(w);
+            return w;
+        }	
+```
+先看看构造函数,创建了一个周期性执行的线程池,在NONE的时候我们传入的threadFactory和unit为null,所以不会线程次和Future也为空,我们创建真正创建的pool对象最大单个线程可存活时间为60秒,task这个是evictor.scheduleWithFixedDelay()返回的一个Future的对象,里面的方法我们去看看
+```Java
+    void evictExpiredWorkers() {
+            if (!expiringWorkerQueue.isEmpty()) {
+                long currentTimestamp = now();
+
+                for (ThreadWorker threadWorker : expiringWorkerQueue) {
+                    if (threadWorker.getExpirationTime() <= currentTimestamp) {
+                        if (expiringWorkerQueue.remove(threadWorker)) {
+                            allWorkers.remove(threadWorker);
+                        }
+                    } else {
+                        // Queue is ordered with the worker that will expire first in the beginning, so when we
+                        // find a non-expired worker we can stop evicting.
+                        break;
+                    }
+                }
+            }
+        }
+```
+就是用来清空expiringWorkerQueue队列和allWorkers队列,在看看get()方法,因为我们没有对expiringWorkerQueue进行add操作,所以是isEmpty为ture,就直接走到下一句创建ThreadWorker,并返回给调用方,这个w就是我们通过pool.get获取的ThreadWorker,好了ThreadWorker找到了,我们回去EventLoopWorker中,就是 threadWorker.scheduleActual(new Action0()),好的,我们进去ThreadWorker.scheduleActual()去看看
 
  
