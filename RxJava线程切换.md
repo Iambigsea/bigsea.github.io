@@ -480,5 +480,52 @@ static final class CachedWorkerPool {
         }
 ```
 就是用来清空expiringWorkerQueue队列和allWorkers队列,在看看get()方法,因为我们没有对expiringWorkerQueue进行add操作,所以是isEmpty为ture,就直接走到下一句创建ThreadWorker,并返回给调用方,这个w就是我们通过pool.get获取的ThreadWorker,好了ThreadWorker找到了,我们回去EventLoopWorker中,就是 threadWorker.scheduleActual(new Action0()),好的,我们进去ThreadWorker.scheduleActual()去看看
+```Java
+    public ScheduledAction scheduleActual(final Action0 action, long delayTime, TimeUnit unit) {
+        Action0 decoratedAction = RxJavaHooks.onScheduledAction(action);
+        ScheduledAction run = new ScheduledAction(decoratedAction);
+        Future<?> f;
+        if (delayTime <= 0) {
+            f = executor.submit(run);
+        } else {
+            f = executor.schedule(run, delayTime, unit);
+        }
+        run.add(f);
 
- 
+        return run;
+    }
+```
+先看看这个executor是什么鬼
+```Java
+        public NewThreadWorker(ThreadFactory threadFactory) {
+        ScheduledExecutorService exec = Executors.newScheduledThreadPool(1, threadFactory);
+        // Java 7+: cancelled future tasks can be removed from the executor thus avoiding memory leak
+        boolean cancelSupported = tryEnableCancelPolicy(exec);
+        if (!cancelSupported && exec instanceof ScheduledThreadPoolExecutor) {
+            registerExecutor((ScheduledThreadPoolExecutor)exec);
+        }
+        executor = exec;
+    }
+```
+这个也是一个ScheduledExecutorService线程池,再回到scheduleActual()方法去看,Action0 decoratedAction对象其实还是action对象自己,前面说过了,就不进去看了,我们知道了executor是个线程池,那么这里的核心方法应该在ScheduledAction.run()里面了
+```Java
+    public ScheduledAction(Action0 action) {
+        this.action = action;
+        this.cancel = new SubscriptionList();
+    }
+    
+    @Override
+    public void run() {
+        try {
+            lazySet(Thread.currentThread());
+            action.call();
+        } catch (OnErrorNotImplementedException e) {
+            signalError(new IllegalStateException("Exception thrown on Scheduler.Worker thread. Add `onError` handling.", e));
+        } catch (Throwable e) {
+            signalError(new IllegalStateException("Fatal Exception thrown on Scheduler.Worker thread.", e));
+        } finally {
+            unsubscribe();
+        }
+    }
+```
+好的,看到这里真相大白了,我们要找的线程切换,其实就是在NewThreadWorker的够着函数中创建的线程池,还有ScheduledAction线程对象,对传进来的Action进行线程切换的
