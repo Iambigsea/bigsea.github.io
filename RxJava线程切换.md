@@ -528,4 +528,139 @@ static final class CachedWorkerPool {
         }
     }
 ```
-好的,看到这里真相大白了,我们要找的线程切换,其实就是在NewThreadWorker的够着函数中创建的线程池,还有ScheduledAction线程对象,对传进来的Action进行线程切换的
+好的,看到这里真相大白了,我们要找的线程切换,其实就是在NewThreadWorker的够着函数中创建的线程池,还有ScheduledAction线程对象,对传进来的Action进行线程切换的,再理一下这个Action
+```Java
+public final class OperatorSubscribeOn<T> implements OnSubscribe<T> {
+
+    final Scheduler scheduler;
+    final Observable<T> source;
+    final boolean requestOn;
+
+    public OperatorSubscribeOn(Observable<T> source, Scheduler scheduler, boolean requestOn) {
+        this.scheduler = scheduler;
+        this.source = source;
+        this.requestOn = requestOn;
+    }
+
+    @Override
+    public void call(final Subscriber<? super T> subscriber) {
+        final Worker inner = scheduler.createWorker();
+
+        SubscribeOnSubscriber<T> parent = new SubscribeOnSubscriber<T>(subscriber, requestOn, inner, source);
+        subscriber.add(parent);
+        subscriber.add(inner);
+
+        inner.schedule(parent);
+    }
+```
+source就是我们通过Observable.OnSubscribe<String>()的对象,subscriber就是subscribe(new Subscriber<String>()对象,然后整个核心的类就在这里了
+```Java
+ static final class SubscribeOnSubscriber<T> extends Subscriber<T> implements Action0 {
+
+        final Subscriber<? super T> actual;
+
+        final boolean requestOn;
+
+        final Worker worker;
+
+        Observable<T> source;
+
+        Thread t;
+
+        SubscribeOnSubscriber(Subscriber<? super T> actual, boolean requestOn, Worker worker, Observable<T> source) {
+            this.actual = actual;
+            this.requestOn = requestOn;
+            this.worker = worker;
+            this.source = source;
+        }
+
+        @Override
+        public void onNext(T t) {
+            actual.onNext(t);
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            try {
+                actual.onError(e);
+            } finally {
+                worker.unsubscribe();
+            }
+        }
+
+        @Override
+        public void onCompleted() {
+            try {
+                actual.onCompleted();
+            } finally {
+                worker.unsubscribe();
+            }
+        }
+
+        @Override
+        public void call() {
+            Observable<T> src = source;
+            source = null;
+            t = Thread.currentThread();
+            src.unsafeSubscribe(this);
+        }
+    }
+```
+我们已经知道inner.schedule(parent)是在子线程调用parent的call方法,就是SubscribeOnSubscriber的call方法,再看下
+```Java
+src.unsafeSubscribe(this)
+```
+``Java
+public final Subscription unsafeSubscribe(Subscriber<? super T> subscriber) {
+        try {
+            // new Subscriber so onStart it
+            subscriber.onStart();
+            // allow the hook to intercept and/or decorate
+            RxJavaHooks.onObservableStart(this, onSubscribe).call(subscriber);
+            return RxJavaHooks.onObservableReturn(subscriber);
+        } catch (Throwable e) {
+            // special handling for certain Throwable/Error/Exception types
+            Exceptions.throwIfFatal(e);
+            // if an unhandled error occurs executing the onSubscribe we will propagate it
+            try {
+                subscriber.onError(RxJavaHooks.onObservableError(e));
+            } catch (Throwable e2) {
+                Exceptions.throwIfFatal(e2);
+                // if this happens it means the onError itself failed (perhaps an invalid function implementation)
+                // so we are unable to propagate the error correctly and will just throw
+                RuntimeException r = new OnErrorFailedException("Error occurred attempting to subscribe [" + e.getMessage() + "] and then again while trying to pass to onError.", e2);
+                // TODO could the hook be the cause of the error in the on error handling.
+                RxJavaHooks.onObservableError(r);
+                // TODO why aren't we throwing the hook's return value.
+                throw r; // NOPMD
+            }
+            return Subscriptions.unsubscribed();
+        }
+    }
+```
+就是我们上说过的,调用传进来的subscriber的onStart(),onError()方法,还有Observable.OnSubscribe<String>()的call方法.在call方法里面,我们又调用了subscriber的onNext(),onCompelete().也就是我们对应的
+```Java
+ @Override
+        public void onNext(T t) {
+            actual.onNext(t);
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            try {
+                actual.onError(e);
+            } finally {
+                worker.unsubscribe();
+            }
+        }
+
+        @Override
+        public void onCompleted() {
+            try {
+                actual.onCompleted();
+            } finally {
+                worker.unsubscribe();
+            }
+        }	
+```
+这个action也就是我们的subscribe(new Subscriber<String>())对象.好的,所有的流程我们已经讲完,我们最后再画张图表示一下
