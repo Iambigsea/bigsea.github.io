@@ -662,3 +662,5 @@ public final Subscription unsafeSubscribe(Subscriber<? super T> subscriber) {
         }	
 ```
 这个action也就是我们的subscribe(new Subscriber<String>())对象.好的,所有的流程我们已经讲完,我们最后再画张图表示一下
+
+![image] (https://github.com/Iambigsea/bigsea.github.io/blob/master/%E7%BA%BF%E7%A8%8B%E5%88%87%E6%8D%A2.png)
