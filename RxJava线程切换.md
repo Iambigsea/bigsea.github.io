@@ -47,9 +47,7 @@ Subscriber thread name : 1
     subscribeOn(Schedulers.io()) 
     observeOn(AndroidSchedulers.mainThread()),
 ```
-我们先看下大概的结构
-### 类图
-
+我们直接看源码
 ### 源码
 看过类图,我们直接来看源码
 直接点击线程切换的方法
