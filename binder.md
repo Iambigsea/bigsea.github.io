@@ -1,3 +1,4 @@
+# [文章来之大神博客](http://qiangbo.space/)
 ## bindlr驱动层
 #### binder机制简介
 android进程间通信的方式有多种，比如管道，socket（zygote启动进程），共享内存，信号量，消息队列等<br>
