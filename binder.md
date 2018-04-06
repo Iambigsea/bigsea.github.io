@@ -29,4 +29,6 @@ Clinet要多server发出请求，就必须知道服务端的id。client需要先
 ![](http://qiangbo-workspace.oss-cn-shanghai.aliyuncs.com/2017-01-15-AndroidAnatomy_Binder/binder_driver_interface.png)
 ### 主要结构
 binder驱动中的结构体可以分为两类：<br>
-一类是与用户空间共用的，这类结构体在Binder通信协议过程中会用到。因此，这些结构体定义在binder.h中，包括：
+一类是与用户空间共用的，这类结构体在Binder通信协议过程中会用到。因此，这些结构体定义在binder.h中，包括：<br>
+这其中，binder_write_read和binder_transaction_data这两个结构体最为重要，它们存储了IPC调用过程中的数据<br>
+还要一类结构体是Binder驱动内部使用的，
