@@ -31,4 +31,32 @@ Clinet要多server发出请求，就必须知道服务端的id。client需要先
 binder驱动中的结构体可以分为两类：<br>
 一类是与用户空间共用的，这类结构体在Binder通信协议过程中会用到。因此，这些结构体定义在binder.h中，包括：<br>
 这其中，binder_write_read和binder_transaction_data这两个结构体最为重要，它们存储了IPC调用过程中的数据<br>
-还要一类结构体是Binder驱动内部使用的，
+还要一类结构体是Binder驱动内部使用的，它们定义在binder.c中
+#### Binder协议
+binder协议可以分为控制协议和驱动协议两类。<br>
+控制协议是进程通过ioctl与binder设备进行通讯的协议<br>
+驱动协议描述了对于Binder驱动的具体使用过程。驱动协议又可以两类：<br>
+* 一类是binder_driver_command_protocol,描述了进程发送给Binder驱动的命令
+* 一类是binder_driver_return_protocol,描述了binder发送给进程的命令
+具体如下图：
+![](http://qiangbo-workspace.oss-cn-shanghai.aliyuncs.com/2017-01-15-AndroidAnatomy_Binder/binder_request_sequence.png)
+* binder是c/s架构的，通过过程协议牵涉到：client，server已经binder驱动三个角色
+* client对于server请求以及Server对于client回复都需要通过binder驱动来中转数据
+* BC_XXX命令是进程发送给驱动的命令
+* BR_XXX命令是驱动发送给进程的命令
+* 整个过程都是binder驱动控制
+#### 打开Binder设备
+任何进程在使用binder之前，都是需要先通过open打开bnder设备，用户控件的open系统对应了binder
+
+
+
+
+
+
+
+
+
+
+
+
+
