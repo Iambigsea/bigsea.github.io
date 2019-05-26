@@ -23,7 +23,8 @@ fun main(args:Array<String>){
 Java互操作性。无论是哪个库提供的API，都可以在Kotlin中使用，可以调用java的方法，继承Java类的实现和Java接口，在Kotlin上应用Java的注解，等等。Kotlin也是被编程成class文件来运行的。代码可以互相转换
 
     * Java转kotlin:把代码复制到Kotlin文件中，触发"Convert Java File to Kotlin File"。或者在androidSutio中选中Code->Convert Java File to Kotlin File
-    * Kotlin转java:比java转kotlin麻烦一些。选中androidStudio->tools->Kotlin->Show Kotlin ByteCode,然后在右边的Kotlin ByteCode界面中选择Decompile即可
+    * Kotlin转java:比java转kotlin麻烦一些。选中androidStudio->tools->Kotlin->Show Kotlin ByteCode,然后在右边的Kotlin ByteCode界面中选择Decompile即可。如图
+![kotlin转java](https://github.com/Iambigsea/bigsea.github.io/blob/master/Kotlin%E8%BD%ACJava.png)
     
 #### 静态类型
 和Java一样是一种静态类型语言，并且支持类型推导
