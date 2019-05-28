@@ -15,7 +15,7 @@
     * 可以省略没行代码结尾的分号
 #### 函数
 函数的声明以关键字fun开始，后面跟着函数名，再后面是参数列表，用()装起来，多个参数用','分隔，最后面的是返回值，用':'隔开。kotlin里面的if是一个表达式，不是语句
-![函数](https://github.com/Iambigsea/bigsea.github.io/blob/master/%E5%87%BD%E6%95%B0.png)
+![函数](https://github.com/Iambigsea/bigsea.github.io/blob/master/%E5%87%BD%E6%95%B0.png) <br/>
 可以让上面的函数变得更加简单
 ```Kotlin
     fun max(a: Int, b: Int) = if (a > b) a else b
