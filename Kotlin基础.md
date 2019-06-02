@@ -42,16 +42,42 @@ java中声明变量是已变量类型开始，但在kotlin中，因为类型是�
         println("Hello $name!")
     }
 ```
-    kotlin可以在字符串字面值引用局部变量，只需要在变量名称前加上字符$,这样等价于Java中的字符串链接("Hello" +name + "!"),效率一样，但是更加紧凑。当然，这样的表达式会进行静态检查，如果你试着引用一个不存在的变量，代码根本不会编译。<br>
-    如果要使用'$'字符，则需要对它进行转义'\$x',这样会打印$x,并不会把x解释成变量的引用。<br>
-    用${}的方式可以应用更加复杂的表达式,只需要把表达式放到花括号中。
+kotlin可以在字符串字面值引用局部变量，只需要在变量名称前加上字符$,这样等价于Java中的字符串链接("Hello" +name + "!"),效率一样，但是更加紧凑。当然，这样的表达式会进行静态检查，如果你试着引用一个不存在的变量，代码根本不会编译。<br>
+如果要使用'$'字符，则需要对它进行转义'\$x',这样会打印$x,并不会把x解释成变量的引用。<br>
+用${}的方式可以应用更加复杂的表达式,只需要把表达式放到花括号中。
 ```kotlin
     fun main(args:Array<String){
         println(Hello,${if(args.size >0)args[0]else "some"})
     }
 ```
 ### 类和属性
-
+先看一个简单的类
+```Java
+public class Person{
+    private final String name;
+    public Person(String name){
+        this.name = name;
+    }
+    public String getName(){
+        return name;
+    }
+}
+```
+这种类只有数据没有其他代码通常叫做值对象，kotlin表示
+```kotlin
+class Person(val name:String)
+```
+注意从Java到Kotlin转换的过程中public修饰符消失了。在kotlin中，public是默认的可见性，所以可以省略它
+#### 属性
+类的概念就是把数据和处理数据的代码封装成一个单一的实体。在Java中，数据存储在字段中。通常还是私有的。如果想让类的使用者访问到数据，得提供访问器方法：一个getter，还可能有一个setter。在Java中，字段和其访问器的组合常常被叫做属性。<br>
+在kotlin中，属性是头等的语言特性，完全替代了字段和访问器方法。在勒种声明一个属性和声明一个变量一样：使用val和var关键字。声明成val的属性是只读的，而var属性是可变的。
+```kotlin
+class Person(
+    val name:String,//只读属性：生成一个字段和一个简单的getter
+    var isMarrried:Boolean//可写属性：一个字段、一个getter和一个setter
+)
+```
+基本上，当声明属性的时候，就声明了对应的访问器（只读属性有一个getter，而可写属性基友getter也有setter）。
 ### 表示和处理选择：枚举和”when“
 
 ### 迭代事务：”while“循环和”for“循环
