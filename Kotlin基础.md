@@ -110,6 +110,27 @@ fun getValue(){
 }
 ```
 枚举常量用的 声明构造函数、方法和属性的语句和常规类一致。如果要在枚举类中定义方法，就要使用分号把枚举常量列表和方法定义分开，这里是kotlin语法中唯一必须使用分号的地方。
+#### 使用"when"处理枚举类
+```kotlin
+public fun hehe(color: ColorSimple): String =
+    when (color) {
+        ColorSimple.RED -> "1----"
+        ColorSimple.GREEN, ColorSimple.VIOLET -> "2----"
+        ColorSimple.YELLOW, ColorSimple.BLUE -> "3-----"
+        else ->"4----"
+    }
+```
+和if一样，when也是一个有返回值的表达式，可以多个值合并到一个分子，用','隔开，else 和switch的default一致，不需要break语句<br>
+可以再"when"结构中使用任意对象，也可以使用不带参数的"when"
+```kotlin
+private var colors = ColorSimple.ORANGE
+public fun addValue(a: Int, b: Int) =
+    when {
+        a + b > 0 -> "大于0"
+        colors == ColorSimple.ORANGE -> "表达式中使用其他对象"
+        else -> "都不符合"
+    }
+```
 #### 
 ### 迭代事务：”while“循环和”for“循环
 
