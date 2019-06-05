@@ -90,8 +90,27 @@ Kotlin不区分导入的是类还是函数，而且，可以使用import关键�
 和java不同的是java需要把类放到包结构相匹配的文件与目录中，而Kotlin则不用，可以把多个类放到同一个文件,也没有对磁盘上源文件的布局加任何限制。
 
     但是大多数时候遵循java的目录布局并根据包结构把源文件放到目录中，依然是一个不错的选择，特别是Kotlin和java混用的项目。
+    并且应该毫不犹豫的把多个类放到同一个文件中，特别是很小的类。kotlin中的类通常很小
 ### 表示和处理选择：枚举和”when“
-
+#### 声明枚举类
+```kotlin    
+enum class Color{
+    RED,ORANGE,YELLOW,GREEN,BLUE,INDIGO,VIOLET        
+}
+```
+kotlin声明枚举比java多了class关键字，enum是一个软关键字，只有在class前面才有意义，其他时候可以当做名称来使用。<br>
+和java一样，枚举并不是值得列表：可以给枚举声明属性和方法。
+```kotlin
+enum class Color(val r:Int,var g:Int,var b:Int){
+    RED(255,0,0),BLUE(0,0,255),GREEN(0,255,0);
+    fun rgb() = (r*255 + g)*255 +b
+}
+fun getValue(){
+    println(Color.RED.rgb())
+}
+```
+枚举常量用的 声明构造函数、方法和属性的语句和常规类一致。如果要在枚举类中定义方法，就要使用分号把枚举常量列表和方法定义分开，这里是kotlin语法中唯一必须使用分号的地方。
+#### 
 ### 迭代事务：”while“循环和”for“循环
 
 ### Kotlin中的异常
