@@ -172,5 +172,39 @@ if和when都可以使用代码块作为分支主体。这种情况下，最后�
 ### 迭代事务：”while“循环和”for“循环
 在本章讨论的所有特性中，kotlin的迭代应该是和java最接近的。when循环和java完全一样。for循环仅以唯一一种形式存在，和java的for-each循环一直。其写法for<item> in <elements>和c#一致。
 #### "while"循环
+kotlin有while循环和do-while循环，语法和java一直
+```kotlin
+while(condition){
+    ......   当condition为true时执行循环体
+}
+do{
+    ..... 循环体会第一次无条件执行，此后，当condition为true时才执行
+}while(condition)
+```
+#### 迭代数字：区间和数列
+kotlin中没有常规的java for循环。kotlin使用了区间的概念。
     
+    区间本质上就是两个值之间的间隔，这两个值通常是2个数字：一个起始值，一个结束值。使用..运算符来表示。kotlin中的区间是包含的或者闭合的，以为着第二个值始终是区间的一部分。使用整数区间做的最基本的事就是迭代其中所有的值。如果能够迭代区间中所有的值，这种区间就叫数列
+```kotlin
+fun regionTest(){
+        var a = 1..10
+        for (i in a){
+            println(i)
+        }
+        for(i in a step 3){
+            println(i)
+        }
+        for(i in 10 downTo 1 step 2){
+            println(i)
+        }
+        for(i in 1 until  10 step 4){
+            println(i)
+        }
+    }
+```
+step是代表带步长的数列，它容许调过一些数字，步长可以是负数，这种情况是递减的<br>
+10 downTo 1是步长-1的数列。然后把步长的绝对值变成了2，，但是方向保持不变（事实上，步长被设置成了-2）<br>
+until函数创建的是不包含结束值的区间。
+#### 迭代map
+
 ### Kotlin中的异常
