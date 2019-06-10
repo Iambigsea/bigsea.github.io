@@ -153,7 +153,22 @@ as：使用as关键字来标识到特定类型的显示转换
 ```kotlin
     var n = e as Num
 ```
+#### 用"when"代替"if"
+kotlin没有三元表达式，因为if表达式有返回值。如果if分支中只有一个表达式，花括号是可以省略的。如果if分支是一个代码块，代码块中的最后一个表达式会作为结果返回。
+```kotlin
+fun whenIfTest(i:IIs){
+    when(i){
+        is As1 -> i.as1()
+        is As2 -> i.as2()
+        else -> throw IllegalArgumentException("unknown expression")
+    }
+}
+```
+when表达式并不仅限于检查值是否相等，这里使用了另一种when分支的形式，检查when实参的值的类型，这里应用了一次智能转换。
+#### 代码块作为"if"和"when"的分支
+if和when都可以使用代码块作为分支主体。这种情况下，最后一个表达式就是结果。
 
+    规则--"代码块中最后的表达式就是结果"，在所有使用代码块并期望得到一个结果的地方成立。同样的规则对try主体和catch子语句也有效
 ### 迭代事务：”while“循环和”for“循环
 
 ### Kotlin中的异常
