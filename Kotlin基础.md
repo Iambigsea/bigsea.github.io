@@ -132,7 +132,27 @@ public fun addValue(a: Int, b: Int) =
     }
 ```
 #### 智能转换：合并类型检查和转换
+is: 在kotlin中，要使用is检查来判断一个变量是否是某种类型，并且如果你检测过一个变量是某种类型，后面就不需要转换它了，可以就把它当做你检查过的类型来使用，事实上编译器为了执行了类型转换，这种行为就成为智能转换。
+```kotlin
+interface IIs{}
 
+class Is1:IIs{
+    fun is1(){
+        println("is1")
+    }
+}
+fun isChange(i :IIs){
+    if(i is Is1){
+        i.is1()
+    }
+}
+```
+
+    智能转换只在变量经过is检查且之后不再发生变化的情况下有效。当对一个类的属性进行智能转换的时候，属性必须是val，并且没有自定义访问器。
+as：使用as关键字来标识到特定类型的显示转换
+```kotlin
+    var n = e as Num
+```
 
 ### 迭代事务：”while“循环和”for“循环
 
