@@ -221,7 +221,7 @@ for((key,value) in map){
 代码运用了一个实用小技巧，根据建来访问和更新map的简明语法 map\[c]= p,可以用map\[c]来读取值，而不再需要调用get和set
 #### 使用"in"检查集合和区间的成员
 使用in运算符来检查一个值是否在区间中，或者它的逆运算!in,来检查这个值是否不在区间中。区间不仅限于字符，只要有一个支持示例比较的任意类（实现了java的comparable接口），就能创建这种类型的对象区间。如果是这样的区间，并不能列举出这个区间的所有对象，但是仍然可以用in运算符检查一个对象的对象是否属于这个区间
-```
+```kotlin
 println(30 in 1..100)
 println(30 !in 1..100)
 println('k' in 'j'..'z')
@@ -230,7 +230,7 @@ println("Kotlin" in "Java".."Scala")
 ### Kotlin中的异常
 kotlin的异常处理方式和java以及其他许多语言的处理方式相似。一个函数可以正常结束，也可以在出现错误的情况下抛出异常。方法的调用者能够捕获到这个异常并处理它，如果没有被处理，异常会沿着调用栈再次抛出。<br>
 kotlin中异常处理语句的基本形式和java类似，抛出异常的方式也不例外
-```
+```kotlin
 var i = 1
 var re = if(i >0){
     i
@@ -238,4 +238,41 @@ var re = if(i >0){
     throw IllegalArgumentException("re must be >0")
 }
 ```
-和其他所有类一样，不必使用new 关键字来创建异常示例。和Java不同的是，kotlin中的throw的结构
+和其他所有类一样，不必使用new 关键字来创建异常示例。和Java不同的是，kotlin中的throw的结构是一个表达式，能做为另个表达式的一部分使用。
+#### "try" "catch"和"finally"
+和java一样，使用带有catch和finally子句的try结构来处理异常
+```kotlin
+    fun readNumber(reader:BufferedReader):Int?{//不必显示的指定这个函数可能抛出的异常
+        try{
+            val line = reader.readLine()
+            return Integer.parseInt(line)
+        }catch (e:NumberFormatException){
+            return null
+        }finally {
+            reader.close()
+        }
+    }
+```
+#### "try"作为表达式
+kotlin中的try关键字就像if和when一样，引入了一个表达式，可以把它赋值给一个变量，不同于if，你总是需要用花括号把语句主体括起来。和其他语句一样，如果其主题包含多个表达式，那么整个try表达式的值就是最后一个表达式的值。
+```kotlin
+fun tryTest(i :String){
+        var b = try{
+            Integer.parseInt(i)
+        }catch (e:NumberFormatException){
+            null
+//            return//如果是return，那么就方法返回了
+        }
+    }
+```
+如果一个try代码块执行一切正常，代码块中最后一个表达式就是结果，如果捕获到了一个异常，响应的catch代码块中最后一个表达式就是结果。
+## 小结
+-fun关键字用来声明函数，var关键字和val关键字分别用来声明可变变量和可读变量
+-字符串模板帮助你避免繁琐的字符串连接。在变量名称前加上$前缀或者用${}包围一个表达式，来吧值注入到字符串中。
+-值对象在kotlin中以简洁的方式表示
+-熟悉的if现在带返回值的表达式
+-when表达式类似于java的switch但功能更加强大
+-在检查过变量具有某种类型之后不必显示的转换它的类型：编译器使用智能转换自动帮你完成。
+-for、while、和do-while与java类似，但是for循环现在更加方便，特别是当你要迭代map的时候，又或者是迭代集合需要下标的时候
+-简洁的语法1..5会创建一个区间。区间和数列容许kotlin在for循环中使用统一的语法和同一套抽象机制，并且还可以使用in运算符和!in运算符来检查值是否属于某个区间。
+-kotlin中异常的处理和java非常相似，除了kotlin不要你声明函数可以抛出的异常
