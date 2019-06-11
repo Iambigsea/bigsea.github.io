@@ -208,5 +208,23 @@ step是代表带步长的数列，它容许调过一些数字，步长可以是�
 10 downTo 1是步长-1的数列。然后把步长的绝对值变成了2，，但是方向保持不变（事实上，步长被设置成了-2）<br>
 until函数创建的是不包含结束值的区间。
 #### 迭代map
-
+```kotlin
+var map = mutableMapOf<Char,String>()
+for (c in 'A'..'F'){
+    var p = Integer.toBinaryString(c.toInt())
+    map[c] = p
+}
+for((key,value) in map){
+    println("key$key = value$value")
+}
+```
+代码运用了一个实用小技巧，根据建来访问和更新map的简明语法 map\[c]= p,可以用map\[c]来读取值，而不再需要调用get和set
+#### 使用"in"检查集合和区间的成员
+使用in运算符来检查一个值是否在区间中，或者它的逆运算!in,来检查这个值是否不在区间中。区间不仅限于字符，只要有一个支持示例比较的任意类（实现了java的comparable接口），就能创建这种类型的对象区间。如果是这样的区间，并不能列举出这个区间的所有对象，但是仍然可以用in运算符检查一个对象的对象是否属于这个区间
+```
+println(30 in 1..100)
+println(30 !in 1..100)
+println('k' in 'j'..'z')
+println("Kotlin" in "Java".."Scala")
+```
 ### Kotlin中的异常
