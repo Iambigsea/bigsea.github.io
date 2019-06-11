@@ -228,3 +228,4 @@ println('k' in 'j'..'z')
 println("Kotlin" in "Java".."Scala")
 ```
 ### Kotlin中的异常
+kotlin的异常处理方式和java以及其他许多语言的处理方式相似。一个函数可以正常结束，也可以在出现错误的情况下
