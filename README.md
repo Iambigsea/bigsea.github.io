@@ -6,5 +6,6 @@
 
 [RxJava线程切换](https://github.com/Iambigsea/bigsea.github.io/blob/master/RxJava%E7%BA%BF%E7%A8%8B%E5%88%87%E6%8D%A2.md)
 
-[Kotlin基础]
-(https://github.com/Iambigsea/bigsea.github.io/blob/master/Kotlin%E5%9F%BA%E7%A1%80.md)
+[Kotlin的定义和目的](https://github.com/Iambigsea/bigsea.github.io/blob/master/Kotlin%E5%AE%9A%E4%B9%89%E5%92%8C%E7%9B%AE%E7%9A%84.md)
+
+[Kotlin基础](https://github.com/Iambigsea/bigsea.github.io/blob/master/Kotlin%E5%9F%BA%E7%A1%80.md)
