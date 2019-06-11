@@ -228,4 +228,14 @@ println('k' in 'j'..'z')
 println("Kotlin" in "Java".."Scala")
 ```
 ### Kotlin中的异常
-kotlin的异常处理方式和java以及其他许多语言的处理方式相似。一个函数可以正常结束，也可以在出现错误的情况下
+kotlin的异常处理方式和java以及其他许多语言的处理方式相似。一个函数可以正常结束，也可以在出现错误的情况下抛出异常。方法的调用者能够捕获到这个异常并处理它，如果没有被处理，异常会沿着调用栈再次抛出。<br>
+kotlin中异常处理语句的基本形式和java类似，抛出异常的方式也不例外
+```
+var i = 1
+var re = if(i >0){
+    i
+}else{
+    throw IllegalArgumentException("re must be >0")
+}
+```
+和其他所有类一样，不必使用new 关键字来创建异常示例。和Java不同的是，kotlin中的throw的结构
