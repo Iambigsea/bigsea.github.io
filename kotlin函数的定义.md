@@ -44,3 +44,25 @@ joinToString(list, separator = ";","]",prefix =  "[")//error，因为separator�
 
     不幸的是，当调用java函数的时候，不能采用命名参数。
 #### 默认参数值
+java中一个普遍存在的问题是重载的函数实在太多了，这些重载，原本是为了向后兼容，方便这些api的使用，这样会导致很多的重复，而且调用的时候容易不知道调用哪个。<br>
+在kotlin中，可在声明函数的时候，指定参数的默认值，这样就可以避免创建重载的函数。
+```kotlin
+    fun <E> joinToString(
+        collection: Collection<E>,
+        separator: String = ",",
+        prefix: String = "[",
+        postfix: String = "]"
+    ): String
+```
+现在在调用的时候就可以用所有的参数来调用函数或者省略部分函数
+```kotlin
+        joinToString(list,",","|","|")//|1,2,3,4,5|
+        joinToString(list,",")//[1,2,3,4,5]
+        joinToString(list)//[1,2,3,4,5]
+```
+
+
+
+
+## 总结
+ 
