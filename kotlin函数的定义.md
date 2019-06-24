@@ -67,11 +67,25 @@ joinToString(list)//[1,2,3,4,5]
 #### 消除静态工具类:顶层函数和属性
 Kotlin中不需要静态的util类，直接把函数放到代码文件的顶层，不用从属任何类。这些类仍然是包内的成员，如果要在包外访问他，则需要import。
 ```kotlin
-package strings
-
-
+Join.kt
+fun joinString(s:String){
+    println(s)
+}
 ```
-
+在java调用的时候，会编译成下面这样
+```java
+public final class JoinKt {
+   public static final void joinString(@NotNull String s) {
+      System.out.println(s);
+   }
+}
+```
+因此，在java中调用时，导入JoinK他，然后调用JoinKt.joinString()即可<br>
+如果不用自动生成的函数名的话，可以用 \@file:Jvm("xxx")的方式，这样就会生成自己明明的函数名"
+#### 顶层属性
+和函一样，属性也可以放在文件顶层。默认情况下，顶层属性和其他任意的属性一样，是通过访问器暴露给Java使用的(如果是val就只有一个getter方法，如果是var则有setter和getter方法)。如果想要把常量以public static final的方式暴露给java使用，则需要const来修饰。但是const只能修饰基本数据类型还有String类型的
+#### 给别人的类添加方法：扩展函数和扩展属性
+kotlin有一大特色，就是可以平滑的和现有代码集成。
 
 ## 总结
  
