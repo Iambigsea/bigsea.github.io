@@ -97,15 +97,68 @@ fun Test() {
     println(s.lastChar())
 }
 ```
-你所有要做的，就是把你要扩展的类或者接口名称，放到即将添加的函数前面。这个类的名称被称为接收者类型，用来调用这个扩展函数的对象，叫做接收者对象。<br>
-调用这个方法也很简单，在导入包了之后，直接像调用类的成员函数那样即可。<br>
-从某种意义上说，你已经为String类添加了自己的方法。即使字符串不是代码的一部分，也没有类的源码，你仍然可以再自己的项目中根据需要去扩展方法。<br>
-不管类是用Java，kotlin或者是Groovy的其他JVM语言编写的，只要是它会编译为Java类，就可以为这个类添加自己的扩展。<br>
-在扩展函数中，可以像其他成员函数一样用this，而且也可以像普通的成员函数一样，省略它。
+- 你所有要做的，就是把你要扩展的类或者接口名称，放到即将添加的函数前面。这个类的名称被称为接收者类型，用来调用这个扩展函数的对象，叫做接收者对象。<br>
+- 调用这个方法也很简单，在导入包了之后，直接像调用类的成员函数那样即可。<br>
+- 从某种意义上说，你已经为String类添加了自己的方法。即使字符串不是代码的一部分，也没有类的源码，你仍然可以再自己的项目中根据需要去扩展方法。<br>
+- 不管类是用Java，kotlin或者是Groovy的其他JVM语言编写的，只要是它会编译为Java类，就可以为这个类添加自己的扩展。<br>
+- 在扩展函数中，可以像其他成员函数一样用this，而且也可以像普通的成员函数一样，省略它。
+- 和在类内部定义的方法不同的是，扩展函数不能访问私有的或者是受保护的成员。
+#### 导入和扩展函数
+定义的扩展函数需要导入之后才能使用。
+```kotlin
+import com.xx.xx.lastChar
+import com.xx.xx.*
+```
+- 可以用导入类一样的语法来导入单个的函数，也可以用\*来导入
+- 可以使用关键字as来修改导入的类或者函数名称，房子多个扩展函数重名。对于一般的函数可以用全名的方式类指出这个类或者函数，但是对于扩展函数，只能用as的方法
+```kotlin
+import com.xx.xx.lastChar as lalal
+```
+#### 从Java中调用扩展函数
+- 事实上扩展函数是静态函数，它把调用对象作为了第一个参数。调用扩展函数，不会创建适配对象或者任何运行时的额外开销。
+- 这使得Java调用kotlin的扩展函数变得非常简单，调用这个静态函数，把就守着对象作为第一个参数穿进去即可。和顶层函数一样，包含这个函数的Java类名，是有这个函数声明文件决定的
+```kotlin
+lastChar函数在ExtendFunDemo文件中
+ExtendFunDemoKt.lastChar("adfads");
+```
+#### 作为扩展函数的工具函数
+扩展函数无非就是静态函数的一个高效的语法糖，扩展函数的静态性质决定了扩展函数不能被子类重写。
+#### 不可重载的扩展函数
+```kotlin
+open public class View(){
+    open fun onClick(){
+        println("view onClick")
+    }
+}
 
+class Button():View(){
+    override fun onClick(){
+        println("botton onClick")
+    }
+}
 
+fun View.show(){
+    println("view show")
+}
 
+fun Button.show(){
+    println("button show")
+}
 
+fun test(){
+    var v:View = Button()
+    v.onClick()//botton onClick
+    v.show()//view show
+}
+```
+当调用一个类型为View的变量的时候show方法的时候，对应的扩展函数会被调用，尽管实际上这个变量是Button对象，因为扩展函数将会在java中被编译为静态函数，同事接受者会作为第一个参数。
+```java
+View v = new Button();
+//OverRideExtendMethod是文件名
+OverRideExtendMethodKt.show(v)
+```
+- 如果一个类的成员函数和扩展函数有相同的签名，成员函数往往会被优先使用
+#### 扩展属性
 
 ## 总结
  
