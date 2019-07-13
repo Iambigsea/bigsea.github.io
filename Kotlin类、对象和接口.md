@@ -1,6 +1,42 @@
-
 ### 定义类继承结构
+Kotlin的接口与Java8中的相似：它们可以好汉抽象方法的定义以及非抽象方法的实现（与Java8的默认方法相似），但是它们不能包含任何状态
 #### Kotlin中的接口
+```kotlin
+interface Clickable {
+    fun showOff()
+}
+
+class Button : Clickable {
+    override fun showOff() {
+        println("Button : showOff")
+    }
+}
+```
+
+```kotlin 
+interface Clickable {
+    fun showOff(){
+        println("Clickable : showOff")
+    }
+}
+
+interface Focusable {
+    fun setFocusable(b: Boolean)
+    fun showOff() {
+        println("Focusable : showOff")
+    }
+}
+
+class Button :Clickable,Focusable{
+    override fun setFocusable(b: Boolean) {
+    }
+
+    override fun showOff() {
+        super<Focusable>.showOff()
+        super<Clickable>.showOff()
+    }
+}
+```
 #### open、final和abstract修饰符：默认为final
 #### 可见性修饰符：默认为public
 #### 内部类和嵌套类：默认是嵌套类
