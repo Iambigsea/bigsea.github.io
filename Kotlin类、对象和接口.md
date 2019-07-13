@@ -12,7 +12,8 @@ class Button : Clickable {
     }
 }
 ```
-
+使用interface关键字来声明一个接口。Kotlin类在类名后面使用冒号来替代了java中的extends和implements关键字。和Java一样一个类可以实现任意接口，但是只能继承一个类。<br>
+Kotlin中使用override修饰符是强制要求的
 ```kotlin 
 interface Clickable {
     fun showOff(){
@@ -37,6 +38,9 @@ class Button :Clickable,Focusable{
     }
 }
 ```
+接口的方法可以有一个默认实现，与Java8不同的是，Java8中需要在是线上标注defalt关键字。但是kotlin中不需要。<br>
+在一个类要实现的多个接口有同一个实现了的方法，如果要调用父类的方法，那么用supper<xx>.xx() <br>
+如果是Java类要实现改接口，那么接口的所有方法都要实现
 #### open、final和abstract修饰符：默认为final
 #### 可见性修饰符：默认为public
 #### 内部类和嵌套类：默认是嵌套类
