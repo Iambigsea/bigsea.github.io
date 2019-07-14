@@ -41,8 +41,23 @@ class Button :Clickable,Focusable{
 接口的方法可以有一个默认实现，与Java8不同的是，Java8中需要在是线上标注defalt关键字。但是kotlin中不需要。<br>
 在一个类要实现的多个接口有同一个实现了的方法，如果要调用父类的方法，那么用supper<xx>.xx() <br>
 如果是Java类要实现改接口，那么接口的所有方法都要实现
+    
 #### open、final和abstract修饰符：默认为final
+Java的类和方法都是默认open的，而Kotlin中的默认都是final的，因为对基类的修改会导致子类不正确的行为，就是所谓的脆弱的基类问题。<br>
+如果想容许创建一个类的子类，需要使用open修饰符来标示这个类，此外，需要给每一个可以被重写的属性或方法添加open修饰符
+如果重写了一个基类或者接口的成员，重写的成员默认是open的，如果需要阻止子类重写你的实现，可以显示的将重写的成员标注为final
+```kotlin
+open class RichButton : Clickable {
+    fun disable() {}
+    open fun animate() {}
+    open fun click() {}
+}
+open class RichButton1 : Clickable {
+    final override fun showOff() {}
+}
+```
 #### 可见性修饰符：默认为public
+
 #### 内部类和嵌套类：默认是嵌套类
 #### 密封类：定义受限的类继承结构
 ### 声明一个带非默认构造方法或属性的类
