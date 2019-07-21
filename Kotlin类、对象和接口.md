@@ -57,6 +57,12 @@ open class RichButton1 : Clickable {
 }
 ```
 #### 可见性修饰符：默认为public
+总的来说，Kotlin中的可见性修饰符与Java中的类似，同样可以使用pubilc、protected和private修饰符。但是默认的可见性是不一样的：如果省略了修饰符，声明就是public的。<br>
+Java中的默认可见性--包私有，在Kotlin中并没有使用。kotlin只把包作为在命名空间里组织代码的一种方式使用，并没有将其用作可见性控制。<br>
+作为替代方案，Kotlin提供了一个新的修饰符，internal，表示“只在模块内部可见”。一个模块就是一组一起编译的kotlin文件。（这个范围没有清楚）<br>
+internal可见性的优势在于它提供了对模块细节的真正封装。<br>
+另一个区别就是kotlin允许在顶层声明中使用private可见性，包括类、函数和属性，这些声明就只会在它声明的文件中可见。<br>
+注意，protect修饰符在java和kotlin中不同的欣慰，在java中，可以从同一个包中访问一个protect的成员，但是在kotlin中不允许这么做。同样还要注意，类的扩展函数不能访问它的private和protect成员。<br>
 
 #### 内部类和嵌套类：默认是嵌套类
 #### 密封类：定义受限的类继承结构
