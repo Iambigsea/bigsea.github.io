@@ -47,7 +47,7 @@ kotlin可以在字符串字面值引用局部变量，只需要在变量名称�
 用${}的方式可以应用更加复杂的表达式,只需要把表达式放到花括号中。
 ```kotlin
     fun main(args:Array<String){
-        println(Hello,${if(args.size >0)args[0]else "some"})
+        println("Hello,${if(args.size >0)args[0]else "some"}")
     }
 ```
 ### 类和属性
